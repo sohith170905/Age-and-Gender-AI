@@ -11,3 +11,10 @@
 - Show product-friendly model and inference names in normal UI; keep implementation identifiers and exact hashes under a collapsed Technical Details section.
 - If a model has no reliable metric file matching its version, display “Not available” and do not borrow metrics from another model or paper.
 - The large production-upgrade checklist is implemented in small layers around the current inference routines. Existing inference preprocessing and output decoding are not refactored unless regression baselines prove equivalence.
+
+- The requested registry location under `models/` conflicts with the stronger rule forbidding all edits inside `models/`; the registry is `config/model_registry.json` and all weights remain unchanged.
+- Existing result files include metrics for unnamed/unverified checkpoints and older evaluation runs. Since those artifacts do not reliably identify the active checkpoint hash/version, none are presented as active-model accuracy; active-version metrics remain “Not available”. The file-level evidence was inspected without opening dataset files.
+- No documented face-pose estimator exists in the installed project. The quality gate flags small, blurred, edge-cropped, dark, and bright inputs, but does not claim to measure side pose; face orientation remains a stated limitation.
+- Regression vectors and outputs are stored together as seeded `.npz` archives (rather than separate `.npy` files) so each baseline self-contains its input and all model heads. Values remain frozen and are compared within 1e-5.
+- Database migration remains a minimal in-app SQLAlchemy schema migration rather than Alembic to avoid a new dependency and preserve the existing SQLite/PostgreSQL adapter. Migration execution is idempotent.
+- The original Google OAuth callback requires the user's provider configuration and was not externally exercised in this local test run. Guest consent/navigation is tested; deployment must configure the public HTTPS callback.

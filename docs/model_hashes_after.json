@@ -1,0 +1,82 @@
+[
+  {
+    "Path": "models/emotion/emotion_model.keras",
+    "SHA256": "D1EF71D7A88D3C010ACAEBB175A8EA88EF04A9250BFDEE0908FE47D6ED58FE0B",
+    "Bytes": 5116389
+  },
+  {
+    "Path": "models/emotion/expression_classes.json",
+    "SHA256": "D743888CA8CB8C7EEF33EF027922E6C05942E4424B5670AFCE627E77AB2700FB",
+    "Bytes": 132
+  },
+  {
+    "Path": "models/face_detection_yunet_2023mar.onnx",
+    "SHA256": "8F2383E4DD3CFBB4553EA8718107FC0423210DC964F9F4280604804ED2552FA4",
+    "Bytes": 232589
+  },
+  {
+    "Path": "models/faceage_dino_fp32.onnx",
+    "SHA256": "B0FEFB4473978DAE8128803D4577DE2586F974198991F2C6252A5609DFFB3233",
+    "Bytes": 1219158136
+  },
+  {
+    "Path": "models/gra_net_age_balanced.keras",
+    "SHA256": "D39867EBAC9E06DD0429CD155B8E7A935B1E215B9B274391517B2F3A23C2BD43",
+    "Bytes": 55392409
+  },
+  {
+    "Path": "models/gra_net_age_focus_candidate.keras",
+    "SHA256": "251EB2F1616EB44DCE18A2B5E84026F5B251495FB290E0D9E00E4782C64685BD",
+    "Bytes": 55392547
+  },
+  {
+    "Path": "models/gra_net_age_robust.keras",
+    "SHA256": "B064933102FFBEFB436D2A99FF47B6059599048A8B2592DE03D84B5A13C07E8B",
+    "Bytes": 55392547
+  },
+  {
+    "Path": "models/gra_net_age_tuned.keras",
+    "SHA256": "4F6ECCDDB4A58D81620472714D80D7056271641A47B862DBBEAA9E57E54BF7E0",
+    "Bytes": 55392357
+  },
+  {
+    "Path": "models/gra_net_paper_utkface.keras",
+    "SHA256": "43B2E6E43564A11166B366C3EDF6CFB1F71F56D2FDB37EA683C827B175F3FCAE",
+    "Bytes": 92794508
+  },
+  {
+    "Path": "models/gra_net_v2.keras",
+    "SHA256": "069EB8DCE4A0CCF784B9D4508984B46F4CDA2FC12C8525EC960AE460969FD56A",
+    "Bytes": 55395367
+  },
+  {
+    "Path": "models/gra_net.keras",
+    "SHA256": "3C7C15C9ABDD8A2ACDC476350E912E3E81A9F8EBFD2C0EB810BF068CE22BB9D5",
+    "Bytes": 55395367
+  },
+  {
+    "Path": "models/paper_fast_benchmark.keras",
+    "SHA256": "1E7DAE3E0264590C765F19DF92A31FB63E0C150A47358F083DDB8A9929C6D8AA",
+    "Bytes": 92794508
+  },
+  {
+    "Path": "models/paper_fast_smoke.keras",
+    "SHA256": "7C6A5D51DDC02BA0A372A0EE36B59271E03A3480F9793CB2F27BF2467B7C51A0",
+    "Bytes": 92794508
+  },
+  {
+    "Path": "models/paper_smoke_bounded.keras",
+    "SHA256": "50E01EFFD00867CC1A97850E5F99434E4A9715724EE50D8998374D66AE49ACB6",
+    "Bytes": 291843736
+  },
+  {
+    "Path": "models/paper_smoke.keras",
+    "SHA256": "6C278F1784169DC891B185655668284DB1185EA1FB69CEA101DC7127DD46B28F",
+    "Bytes": 291843735
+  },
+  {
+    "Path": "models/research_mobilenet_age.keras",
+    "SHA256": "C6C8F8C05D24C9D01CE086A14663656AE976B96726B588D5AE45ACE20633CFA6",
+    "Bytes": 9040298
+  }
+]

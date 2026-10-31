@@ -1,0 +1,124 @@
+{
+  "app": {
+    "name": "Age & Gender AI",
+    "version": "2.0.0",
+    "subtitle": "Classification of Age and Gender from Facial Images"
+  },
+  "default_age_gender_model": "agevision_onnx",
+  "models": {
+    "gra_net_compact": {
+      "display_name": "GRA_Net Compact",
+      "version": "Project checkpoint",
+      "task": "Age and gender estimation",
+      "path": "models/gra_net_age_tuned.keras",
+      "sha256": "4F6ECCDDB4A58D81620472714D80D7056271641A47B862DBBEAA9E57E54BF7E0",
+      "input_size": "32 × 32 RGB",
+      "input_range": "[0, 1]",
+      "outputs": [
+        "gender (2-class softmax)",
+        "age group (10-class softmax)",
+        "age regression"
+      ],
+      "class_order": {
+        "gender": [
+          "Male",
+          "Female"
+        ],
+        "age_group": [
+          "0-9",
+          "10-19",
+          "20-29",
+          "30-39",
+          "40-49",
+          "50-59",
+          "60-69",
+          "70-79",
+          "80-89",
+          "90-99"
+        ]
+      },
+      "dataset": "UTKFace, according to project documentation",
+      "metrics_source": null,
+      "metrics": null,
+      "limitations": [
+        "Age and gender are visual estimates and may be wrong.",
+        "No verified metrics file matching this checkpoint is available."
+      ]
+    },
+    "agevision_onnx": {
+      "display_name": "AgeVision AI",
+      "version": "Local ONNX checkpoint",
+      "task": "Age and gender estimation",
+      "path": "models/faceage_dino_fp32.onnx",
+      "sha256": "B0FEFB4473978DAE8128803D4577DE2586F974198991F2C6252A5609DFFB3233",
+      "input_size": "224 × 224 RGB",
+      "input_range": "ImageNet normalized",
+      "outputs": [
+        "age (100 ordinal logits)",
+        "gender (2 logits)"
+      ],
+      "class_order": {
+        "gender": [
+          "Female",
+          "Male"
+        ],
+        "age": "ordinal 0-99"
+      },
+      "dataset": "Not available from project metadata",
+      "metrics_source": null,
+      "metrics": null,
+      "limitations": [
+        "Age confidence is model-derived and not independently calibrated.",
+        "No matching evaluation file is available for this exact checkpoint."
+      ]
+    },
+    "expression_v1": {
+      "display_name": "Expression Model v1",
+      "version": "Frozen checkpoint",
+      "task": "Facial expression classification",
+      "path": "models/emotion/emotion_model.keras",
+      "sha256": "D1EF71D7A88D3C010ACAEBB175A8EA88EF04A9250BFDEE0908FE47D6ED58FE0B",
+      "input_size": "48 × 48 grayscale",
+      "input_range": "[0, 1]",
+      "outputs": [
+        "seven expression probabilities"
+      ],
+      "class_order": [
+        "Angry",
+        "Disgust",
+        "Fear",
+        "Happy",
+        "Neutral",
+        "Sad",
+        "Surprise"
+      ],
+      "dataset": "Not available from project metadata",
+      "metrics_source": null,
+      "metrics": null,
+      "limitations": [
+        "Expression recognition is substantially less reliable than the age/gender models.",
+        "Visible expression is not a person's true feelings and is not a diagnosis.",
+        "Disgust and fear are especially difficult classes."
+      ]
+    },
+    "yunet": {
+      "display_name": "YuNet Face Detector",
+      "version": "2023-03",
+      "task": "Face detection",
+      "path": "models/face_detection_yunet_2023mar.onnx",
+      "sha256": "8F2383E4DD3CFBB4553EA8718107FC0423210DC964F9F4280604804ED2552FA4",
+      "input_size": "Dynamic image",
+      "input_range": "RGB image",
+      "outputs": [
+        "face bounding boxes and detection confidence"
+      ],
+      "class_order": null,
+      "dataset": "OpenCV Zoo model",
+      "metrics_source": null,
+      "metrics": null,
+      "limitations": [
+        "Small, occluded, side-profile, or poorly lit faces may be missed."
+      ]
+    }
+  }
+}

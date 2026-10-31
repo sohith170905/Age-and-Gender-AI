@@ -1,0 +1,10 @@
+models/**/*.keras filter=lfs diff=lfs merge=lfs -text
+models/**/*.h5 filter=lfs diff=lfs merge=lfs -text
+models/**/*.tflite filter=lfs diff=lfs merge=lfs -text
+experiments/**/*.h5 filter=lfs diff=lfs merge=lfs -text
+models/*.keras filter=lfs diff=lfs merge=lfs -text
+models/*.onnx filter=lfs diff=lfs merge=lfs -text
+models/**/*.onnx filter=lfs diff=lfs merge=lfs -text
+experiments/**/*.keras filter=lfs diff=lfs merge=lfs -text
+experiments/**/*.onnx filter=lfs diff=lfs merge=lfs -text
+experiments/**/*.tflite filter=lfs diff=lfs merge=lfs -text
