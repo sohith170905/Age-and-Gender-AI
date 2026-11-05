@@ -8,7 +8,7 @@
   "models": {
     "gra_net_compact": {
       "display_name": "GRA_Net Compact",
-      "version": "Project checkpoint",
+      "version": "v2.0",
       "task": "Age and gender estimation",
       "path": "models/gra_net_age_tuned.keras",
       "sha256": "4F6ECCDDB4A58D81620472714D80D7056271641A47B862DBBEAA9E57E54BF7E0",
@@ -47,7 +47,7 @@
     },
     "agevision_onnx": {
       "display_name": "AgeVision AI",
-      "version": "Local ONNX checkpoint",
+      "version": "v2.0",
       "task": "Age and gender estimation",
       "path": "models/faceage_dino_fp32.onnx",
       "sha256": "B0FEFB4473978DAE8128803D4577DE2586F974198991F2C6252A5609DFFB3233",
@@ -74,7 +74,7 @@
     },
     "expression_v1": {
       "display_name": "Expression Model v1",
-      "version": "Frozen checkpoint",
+      "version": "v1.0",
       "task": "Facial expression classification",
       "path": "models/emotion/emotion_model.keras",
       "sha256": "D1EF71D7A88D3C010ACAEBB175A8EA88EF04A9250BFDEE0908FE47D6ED58FE0B",

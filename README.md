@@ -1,119 +1,343 @@
-# AgeVision AI
+# AgeVision AI (Age-and-Gender-AI)
 
-A local Streamlit application for face detection, age/gender estimates, and optional facial-expression estimates. The project preserves its existing GRA_Net and local AgeVision ONNX models; it does not train, download, convert, or rewrite checkpoints during app use.
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.64.0-FF4B4B.svg)](https://streamlit.io/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.142.2-009688.svg)](https://fastapi.tiangolo.com/)
+[![Git LFS](https://img.shields.io/badge/Git%20LFS-Tracked-informational.svg)](https://git-lfs.github.com/)
 
-## Start the app on Windows
+A modular computer vision application powered by Streamlit and local deep learning models for face detection, age and gender estimation, and optional facial expression classification. The project performs all inference locally using pre-trained neural networks without sending image data to external cloud APIs or third-party servers.
 
-The project currently includes a ready-to-use `venv`:
+---
 
-```powershell
-.\venv\Scripts\Activate.ps1
-streamlit run app.py
-```
+## 1. Project Introduction
 
-Or use `scripts\run_app.ps1`. If setting up a new machine, use Python 3.11, create a virtual environment, and install the pinned dependencies:
+**AgeVision AI** provides an interactive web application and optional REST API designed for demographic and affective visual analysis. The system combines multi-task Convolutional Neural Networks (GRA_Net architecture) and deep ONNX-optimized vision models to detect faces and compute real-time estimates of age, gender, and facial expressions from uploaded photos or live camera streams.
 
-```powershell
-py -3.11 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-streamlit run app.py
-```
+---
 
-Open the local URL printed by Streamlit, normally `http://localhost:8501`. Keep the app bound to localhost unless it is behind an authenticated HTTPS reverse proxy. Browser camera access on another device needs HTTPS; see [deployment notes](docs/DEPLOYMENT.md).
+## 2. Project Objectives
 
-## Screenshots
+- **On-Device Inference**: Run computer vision pipelines locally without reliance on third-party cloud APIs.
+- **Privacy by Design**: Process uploaded images and camera frames strictly in memory without writing image files to disk.
+- **Modular Architecture**: Separate UI presentation (`app.py`), backend business logic (`services/`), and inference engines (`inference/`, `emotion/`).
+- **Reproducible Engineering**: Maintain frozen model baselines, automated synthetic test suites, and Git LFS pointer integrity.
 
-Add approved application screenshots here. Do not include real people's images without their permission.
+---
 
-## Architecture
+## 3. Key Features
+
+- **Interactive Multi-Page Streamlit UI**:
+  - **Single & Group Face Analysis**: Bounding box detection, age prediction, gender classification, and confidence scoring.
+  - **Facial Expression Analysis**: 7-class emotion classification (Neutral, Happy, Sad, Surprise, Fear, Disgust, Anger) with multi-view Test-Time Augmentation (TTA).
+  - **Live WebRTC Camera Stream**: Real-time video frame processing with an automatic snapshot fallback mode.
+  - **User History & Analytics**: Local, user-scoped prediction history with interactive charts and aggregate demographic metrics.
+  - **Model Settings & Audit**: Inspect loaded checkpoints, verify SHA-256 integrity, switch between active models, and configure data retention.
+- **Privacy & Security Controls**:
+  - **No Image Persistence**: Uploads and camera frames are decoded directly in memory and discarded after processing.
+  - **Secure Local Authentication**: Salted PBKDF2-HMAC-SHA256 password hashing for registered user accounts.
+  - **Ephemeral Guest Mode**: Explore the application without creating an account; guest data is never written to the database.
+  - **Configurable Retention**: Choose 0-day (Off), 30-day, or 90-day automatic metadata retention, with instant one-click data deletion.
+- **In-Memory Multi-Format Export**:
+  - Export prediction results directly to CSV, JSON, annotated PNG crops, or structured PDF reports without writing temporary files.
+- **Optional Bearer-Protected REST API**:
+  - Standalone FastAPI service providing endpoints for health monitoring, model metadata inspection, and authenticated image analysis.
+
+---
+
+## 4. Technology Stack
+
+- **Application & Presentation**: [Streamlit](https://streamlit.io/), [Streamlit-WebRTC](https://github.com/whitphx/streamlit-webrtc)
+- **Computer Vision & Image Processing**: OpenCV (`opencv-python-headless`), Pillow (`PIL`), PyAV (`av`)
+- **Deep Learning Frameworks**: TensorFlow / Keras, [ONNX Runtime](https://onnxruntime.ai/)
+- **Data & Numeric Computing**: NumPy, Pandas, Scikit-learn
+- **Database & Persistence**: SQLAlchemy 2.0, SQLite (default local) / PostgreSQL (`psycopg`)
+- **REST Backend**: FastAPI, Uvicorn, Pydantic v2
+- **Testing & Quality**: Pytest, Streamlit AppTest framework
+
+---
+
+## 5. Project Architecture
 
 ```text
-Browser ──> Streamlit app (app.py) ──> validated in-memory image pipeline
-                                         ├─> local YuNet/Haar detector
-                                         ├─> local AgeVision ONNX or GRA_Net model
-                                         └─> optional local expression model
-Signed-in metadata ──> SQLAlchemy ──> SQLite (default) or PostgreSQL
-Optional REST client ──> FastAPI ──> same in-memory service + local models
+┌─────────────────────────────────────────────────────────────┐
+│                       Client Browser                        │
+└──────────────┬──────────────────────────────┬───────────────┘
+               │ HTTP / WebSockets            │ HTTPS / WebRTC
+               ▼                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                 Streamlit Application (app.py)              │
+├─────────────────────────────────────────────────────────────┤
+│  • Auth Manager (services/accounts.py)                      │
+│  • Quality Checks & Blurring (services/quality.py)          │
+│  • Orchestration Pipeline (services/analysis.py)            │
+│  • Multi-Format Exporters (services/exports.py)             │
+│  • In-Memory Prediction Tracking (services/tracking.py)     │
+└──────────────┬──────────────────────────────┬───────────────┘
+               │                              │
+               ▼                              ▼
+┌──────────────────────────────┐ ┌────────────────────────────┐
+│      Face Detection          │ │    Deep Inference Models   │
+├──────────────────────────────┤ ├────────────────────────────┤
+│ • OpenCV YuNet (ONNX)        │ │ • GRA_Net Compact (Keras)  │
+│ • Haar Cascade Fallback      │ │ • AgeVision DINO (ONNX)    │
+│                              │ │ • Expression CNN (Keras)   │
+└──────────────────────────────┘ └────────────────────────────┘
+               │                              │
+               ▼                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                Database Storage (Local SQLite)              │
+│    • User accounts (hashed passwords)                       │
+│    • User-scoped prediction metadata (no images stored)     │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-The Streamlit app does not call the API. Image bytes and camera frames are not written to disk or saved in the database.
+---
 
-## Features
+## 6. Directory Structure
 
-- Home, image analysis (single or group), facial-expression analysis, live camera, private history/analytics, Settings, and About AI.
-- Local GRA_Net or AgeVision ONNX inference; the local expression model with high-accuracy multi-view averaging.
-- Upload validation and image-quality notices; images and camera frames remain in memory and are not written as files.
-- Signed-in prediction history stores metadata, not face images. Guests do not save predictions.
-- In-memory CSV, JSON, annotated-PNG, and PDF exports.
-- Optional bearer-protected FastAPI service.
-
-## Google sign-in (optional)
-
-Configure Streamlit’s native Google OIDC in `.streamlit/secrets.toml` (never commit it):
-
-```toml
-[auth]
-redirect_uri = "http://localhost:8501/oauth2callback"
-cookie_secret = "replace-with-a-long-random-secret"
-client_id = "your-client-id.apps.googleusercontent.com"
-client_secret = "your-client-secret"
-server_metadata_url = "https://accounts.google.com/.well-known/openid-configuration"
+```text
+Age-and-Gender-AI/
+├── .env.example                 # Environment configuration template
+├── .gitattributes               # Git LFS tracking configuration
+├── .gitignore                   # Exclusions for credentials, data, and artifacts
+├── Dockerfile                   # Production container definition
+├── README.md                    # Project documentation
+├── app.py                       # Main Streamlit web application
+├── docker-compose.yml           # Container orchestration definition
+├── requirements.txt             # Production dependencies (pinned)
+├── requirements-dev.txt         # Development & testing dependencies
+├── run_app.ps1                  # Windows launcher for Streamlit app
+├── run_api.ps1                  # Windows launcher for FastAPI service
+├── api/
+│   └── main.py                  # Standalone FastAPI REST service
+├── assets/
+│   └── agevision_favicon.svg    # Application branding icon
+├── config/
+│   └── model_registry.json      # Model metadata and SHA-256 checksums
+├── core/
+│   ├── config.py                # Environment configuration loader
+│   └── model_registry.py        # Model registry verification utilities
+├── data/
+│   └── README.md                # Dataset storage guidelines (datasets ignored)
+├── docs/
+│   ├── AUDIT.md                 # Security and baseline audit record
+│   ├── DEPLOYMENT.md            # Production deployment recommendations
+│   └── model_hashes_after.json  # Reference cryptographic model checksums
+├── emotion/
+│   ├── model_loader.py          # Emotion model loader
+│   ├── predictor.py             # Emotion inference handler
+│   └── tta.py                   # Multi-view Test-Time Augmentation
+├── inference/
+│   └── api_engine.py            # In-memory batch inference engine
+├── models/                      # Deep learning weights (tracked via Git LFS)
+│   ├── emotion/
+│   │   ├── emotion_model.keras  # Facial expression classifier
+│   │   └── expression_classes.json
+│   ├── faceage_dino_fp32.onnx   # High-resolution age/gender ONNX model
+│   ├── face_detection_yunet_2023mar.onnx
+│   └── gra_net*.keras           # GRA_Net multi-task checkpoints
+├── notebooks/
+│   └── GRA_Net_Complete_Colab.ipynb # Google Colab starter notebook
+├── services/
+│   ├── accounts.py              # Salted PBKDF2 authentication service
+│   ├── analysis.py              # Pipeline orchestration service
+│   ├── batch_emotions.py        # Multi-face batch emotion classification
+│   ├── exports.py               # In-memory CSV, JSON, PNG, and PDF exporters
+│   ├── quality.py               # Lighting, blur, and contrast validators
+│   └── tracking.py              # History tracking and retention service
+└── tests/
+    ├── baseline/                # Synthetic baseline arrays
+    ├── test_accounts.py         # Authentication service unit tests
+    ├── test_batch_emotions.py   # Batch emotion classification tests
+    └── test_ml_pipeline.py      # Streamlit UI & ML pipeline regression tests
 ```
 
-Register the same redirect URL in the Google OAuth web client. Without credentials, guest mode remains available.
+---
 
-## Configuration
+## 7. Installation Instructions
 
-The process reads OS environment variables. `.env.example` is a reference and is not auto-loaded.
+### Prerequisites
+- **Operating System**: Windows 10/11, macOS, or Linux
+- **Python**: Version **3.11** (recommended: 3.11.9)
+- **Git & Git LFS**: Ensure Git and [Git LFS](https://git-lfs.com/) are installed on your machine.
 
-| Variable | Purpose | Default |
+---
+
+## 8. Virtual Environment Setup (Windows)
+
+Clone the repository and create a dedicated Python 3.11 virtual environment:
+
+```powershell
+# Clone the repository
+git clone https://github.com/sohit170905/Age-and-Gender-AI.git
+cd Age-and-Gender-AI
+
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+.\venv\Scripts\Activate.ps1
+```
+
+*(On macOS / Linux, run: `python3 -m venv venv && source venv/bin/activate`)*
+
+---
+
+## 9. Dependency Installation
+
+Upgrade `pip` and install the pinned dependencies:
+
+```powershell
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+To install development and testing tools:
+
+```powershell
+pip install -r requirements-dev.txt
+```
+
+---
+
+## 10. Environment Variable Configuration
+
+Copy the `.env.example` template to `.env`:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Key environment configuration variables:
+
+| Variable | Description | Default |
 |---|---|---|
-| `AGE_GENDER_MODEL` | `agevision_onnx` or `gra_net_compact` | `agevision_onnx` (falls back to GRA_Net if absent) |
-| `AGE_GENDER_MAX_UPLOAD_BYTES` | Per-image upload cap | 16 MiB |
-| `AGE_GENDER_MAX_IMAGE_PIXELS` | Decoded image pixel cap | 40,000,000 |
-| `AGE_GENDER_MAX_FACES` | Faces analyzed per image | 80 |
-| `AGE_GENDER_MAX_BATCH_IMAGES` | Images in one batch | 5 |
-| `AGE_GENDER_RETENTION_DAYS` | Default signed-in metadata retention | 0 (Off) |
-| `DATABASE_URL` | Optional SQLAlchemy database URL | local SQLite file |
-| `AGE_GENDER_API_KEY` | Enables authenticated API routes | unset (API unavailable) |
-| `AGE_GENDER_API_RATE_LIMIT` | Requests per API key/minute | 60 |
-| `AGE_GENDER_CAMERA_FRAME_INTERVAL` | Frames between inference passes | 5 |
-| `AGE_GENDER_CAMERA_MAX_WIDTH` / `_HEIGHT` | Camera processing dimensions | 640 × 480 |
-| `AGE_GENDER_CAMERA_STUN_URL` | Optional STUN URL for WebRTC | empty |
+| `AGE_GENDER_MODEL` | Selected model (`agevision_onnx` or `gra_net_compact`) | `agevision_onnx` |
+| `AGE_GENDER_MAX_UPLOAD_BYTES` | Maximum allowed file upload size in bytes | `16777216` (16 MiB) |
+| `AGE_GENDER_MAX_IMAGE_PIXELS` | Maximum decoded image pixel limit | `40000000` (40 MP) |
+| `AGE_GENDER_MAX_FACES` | Maximum faces detected and processed per image | `80` |
+| `AGE_GENDER_MAX_BATCH_IMAGES` | Maximum number of images in a batch upload | `5` |
+| `DATABASE_URL` | SQLAlchemy connection string (defaults to SQLite) | `sqlite:///data/app.db` |
+| `AGE_GENDER_RETENTION_DAYS` | Default retention period in days (`0` = Off) | `0` |
+| `AGE_GENDER_API_KEY` | Bearer API token required for the FastAPI backend | *Unset (API disabled)* |
+| `AGE_GENDER_API_RATE_LIMIT` | Allowed requests per minute per API key | `60` |
+| `AGE_GENDER_CAMERA_FRAME_INTERVAL` | Interval between processed camera frames | `5` |
 
-Settings also let signed-in users select Off, 30-day, or 90-day history retention and choose which local age/gender model to use.
+---
 
-## Run the optional API
+## 11. Dataset Setup Instructions (Optional)
 
-Set a long random key in the current PowerShell session, then run `scripts\run_api.ps1`:
+The application ships with trained model weights and **does not require a dataset to run**.
+
+If you plan to run evaluation or training scripts (`train.py`, `evaluate.py`):
+1. Download a licensed dataset (e.g., the [UTKFace](https://susanqq.github.io/UTKFace/) dataset).
+2. Place the unzipped image files into `data/UTKFace/`.
+3. The `data/UTKFace/` folder is explicitly ignored by Git to avoid uploading private or unlicensed images to GitHub.
+
+---
+
+## 12. Model File Requirements & Checksums
+
+The project uses frozen local model weights stored in the `models/` folder:
+
+| Model Identifier | File Path | Format | Task |
+|---|---|---|---|
+| `agevision_onnx` | `models/faceage_dino_fp32.onnx` | ONNX | Age & Gender Estimation |
+| `gra_net_compact` | `models/gra_net_age_tuned.keras` | Keras | Age & Gender Estimation |
+| `gra_net_v1` | `models/gra_net.keras` | Keras | Multi-task Baseline |
+| `expression_v1` | `models/emotion/emotion_model.keras` | Keras | 7-Class Emotion Classification |
+| `yunet_detector` | `models/face_detection_yunet_2023mar.onnx` | ONNX | Face Detection |
+
+All weights and configurations are registered with cryptographic SHA-256 hashes in `config/model_registry.json`.
+
+---
+
+## 13. Git LFS Installation and Model Download
+
+Model binary files are managed using [Git Large File Storage (LFS)](https://git-lfs.com/).
+
+Before cloning or pulling model files, ensure Git LFS is initialized:
 
 ```powershell
-$env:AGE_GENDER_API_KEY = "<long-random-secret>"
-.\scripts\run_api.ps1
+# Initialize Git LFS on your machine
+git lfs install
+
+# If models were cloned as pointers, fetch the actual binary weights:
+git lfs pull
 ```
 
-The API binds to `127.0.0.1:8000`; health is `GET /health`, authenticated model metadata is `GET /api/v1/models`, and predictions use `POST /api/v1/analyze` with a multipart `image` field. See [API and deployment notes](docs/DEPLOYMENT.md).
-
-## Verification
-
-Synthetic-only regression tests cover upload validation, quality flags, orchestration, exports, tracker behavior, registry hashes, and numerical inference against frozen synthetic baselines. They do not read face datasets:
+Verify that all model files are tracked properly:
 
 ```powershell
-.\venv\Scripts\python.exe -m pytest -q
+git lfs ls-files
 ```
 
-Read [the upgrade report](docs/REALWORLD_UPGRADE_REPORT.md) for the exact test outcomes and model checksums after verification.
+---
 
-## Model and use limitations
+## 14. Application Launch Instructions
 
-Age, gender, and expression are estimates and can be incorrect. Confidence is not independently calibrated; poor image quality can make results less reliable. Do not use outputs to make decisions about people. The repository does not assert that the checkpoints meet an accuracy target or reproduce published-paper results.
+Launch the Streamlit web application:
 
-## Troubleshooting
+```powershell
+streamlit run app.py
+```
 
-- **Model unavailable:** confirm the chosen local checkpoint exists in `models/`; the app never downloads model files. Settings → Model shows the checkpoint status and short checksum.
-- **Camera permission or blank camera:** allow camera access in the browser, close other applications using the camera, use `http://localhost` on the same computer, or use HTTPS for another device. Snapshot mode remains available as a fallback.
-- **ONNX Runtime fails to load:** use the pinned requirements in a fresh Python 3.11 virtual environment and check CPU support for the installed `onnxruntime` wheel.
-- **Google sign-in does not appear:** check the local `[auth]` settings and exact registered redirect URI. Guest mode works without Google credentials.
-- **History is empty:** guest results are not saved. Sign in and grant consent before making predictions to save metadata.
-- **App feels slow:** models load lazily on the first analysis. For CPU live camera, keep the configured reduced frame size and inference interval; turn off optional expression analysis.
+Or execute the Windows helper script:
+
+```powershell
+.\run_app.ps1
+```
+
+Once running, navigate to `http://localhost:8501` in your web browser.
+
+---
+
+## 15. Testing Instructions
+
+The repository includes comprehensive synthetic unit and integration tests. The test suite uses synthetic arrays and in-memory databases, requiring no external datasets:
+
+```powershell
+# Run the complete test suite
+pytest tests/ -v
+```
+
+To run registry integrity checks:
+
+```powershell
+pytest tests/test_ml_pipeline.py -k "registry" -v
+```
+
+---
+
+## 16. Optional REST API Service
+
+An independent FastAPI service is available for programmatic integration:
+
+```powershell
+# Set an API key in your session
+$env:AGE_GENDER_API_KEY = "your-secure-random-token"
+
+# Start the API server
+.\run_api.ps1
+# Or directly via Uvicorn:
+uvicorn api.main:app --host 127.0.0.1 --port 8000
+```
+
+- **Health check**: `GET http://127.0.0.1:8000/health`
+- **Models endpoint**: `GET http://127.0.0.1:8000/api/v1/models` *(Requires `Authorization: Bearer <token>`)*
+- **Analysis endpoint**: `POST http://127.0.0.1:8000/api/v1/analyze` *(Multipart form upload with field `image`)*
+
+---
+
+## 17. Important Limitations & Ethical Considerations
+
+- **Statistical Estimates**: Predictions for age, gender, and facial expressions are algorithmic estimates based on learned visual features and may produce errors or biased outputs.
+- **Image Quality Dependence**: Poor illumination, extreme head poses, motion blur, and low image resolution significantly degrade prediction reliability.
+- **Non-Diagnostic & Non-Decisional**: Outputs must **never** be used for automated decision-making, access control, legal determination, surveillance, or health assessments.
+- **Privacy Compliance**: Ensure you possess explicit consent from individuals before capturing or processing their facial images.
+
+---
+
+## 18. License
+
+This repository does not currently include an open-source license file. All rights are reserved by the repository owner. Contact the repository maintainer for licensing and reuse permissions.

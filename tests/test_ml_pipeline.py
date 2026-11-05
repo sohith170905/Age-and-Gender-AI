@@ -165,15 +165,23 @@ def test_streamlit_guest_navigation_smoke(monkeypatch):
     monkeypatch.setenv("DATABASE_URL", "sqlite:///" + database.as_posix())
     at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60).run()
     assert not at.exception
-    guest_button = next(button for button in at.button if button.label == "Continue as Guest")
-    guest_button.click().run()
-    at.checkbox[0].check().run()
-    at.button[0].click().run()
+    assert any(button.label == "Continue as Guest" for button in at.button)
+    assert any(button.label == "Create Account" for button in at.button)
+    assert any(button.label == "Sign In" for button in at.button)
+    next(button for button in at.button if button.label == "Continue as Guest").click().run()
+    assert at.session_state["guest_mode"] is True
+    assert at.session_state["navigation_page"] == "🏠 Home"
+    assert not any("Sign In" in button.label or "Log Out" in button.label for button in at.button)
+    assert not any(el.value == "Privacy and responsible use" for el in at.title)
     assert not at.exception
+    assert at.session_state["theme_preference"] == "Dark"
+    at.session_state["theme_preference"] = "Light"
+    at.run()
     nav = next(radio for radio in at.radio if radio.label == "Navigation")
     for page in nav.options:
         nav.set_value(page).run()
-        assert not at.exception, page
+        assert at.session_state["navigation_page"] == page
+        assert not at.exception, f"Light theme / {page}"
         nav = next(radio for radio in at.radio if radio.label == "Navigation")
         subpage_label = {"🔍 Analyze": "Analyze", "🕘 History": "History", "⚙️ Settings": "Settings", "ℹ️ About AI": "About AI"}.get(page)
         if subpage_label:
@@ -192,6 +200,29 @@ def test_streamlit_guest_navigation_smoke(monkeypatch):
         nav.set_value(page).run()
         assert not at.exception, f"Dark theme / {page}"
         nav = next(radio for radio in at.radio if radio.label == "Navigation")
+
+
+def test_streamlit_account_registration_and_signin_flow(monkeypatch, tmp_path):
+    from streamlit.testing.v1 import AppTest
+
+    database = tmp_path / "account-flow.db"
+    monkeypatch.setenv("DATABASE_URL", "sqlite:///" + database.as_posix())
+    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60).run()
+    next(button for button in at.button if button.label == "Create Account").click().run()
+    next(widget for widget in at.text_input if widget.label == "Full Name").set_value("Taylor Example")
+    next(widget for widget in at.text_input if widget.label == "Email Address").set_value("taylor@example.com")
+    next(widget for widget in at.text_input if widget.label.startswith("Password (")).set_value("test-password-94")
+    next(widget for widget in at.text_input if widget.label == "Confirm Password").set_value("test-password-94")
+    next(button for button in at.button if button.label == "Create Account").click().run()
+    assert not at.exception
+    assert any("Account created" in element.value for element in at.success)
+
+    next(widget for widget in at.text_input if widget.label == "Email Address").set_value("TAYLOR@example.com")
+    next(widget for widget in at.text_input if widget.label == "Password").set_value("test-password-94")
+    next(button for button in at.button if button.label == "Sign In").click().run()
+    assert at.session_state["authenticated_user_email"] == "taylor@example.com"
+    assert not at.session_state.get("guest_mode", False)
+    assert not at.exception
 
 
 def test_user_scoped_history_consent_and_deletion_are_isolated():
@@ -246,3 +277,15 @@ def test_environment_configuration_is_bounded(monkeypatch):
     assert config.max_batch_images == 3
     assert config.camera_frame_interval == 2
     assert config.root == ROOT.resolve()
+
+def test_authentication_has_no_backdoor_demo_login(monkeypatch):
+    from streamlit.testing.v1 import AppTest
+    monkeypatch.setenv("DEV_FAKE_USER", "1")
+    monkeypatch.setenv("ENV", "production")
+    at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60).run()
+    assert not at.exception
+    assert all("demo account" not in button.label.lower() for button in at.button)
+    labels = [b.label for b in at.button]
+    assert "Continue as Guest" in labels
+    assert "Create Account" in labels
+    assert "Sign In" in labels

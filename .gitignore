@@ -1,8 +1,11 @@
+# Credentials
 .env
 .env.*
 !.env.example
 .streamlit/secrets.toml
 .streamlit/certs/
+
+# Runtime and system logs
 logs/
 data/*.db
 data/*.db-*
@@ -17,5 +20,22 @@ venv/
 Thumbs.db
 tmp/
 tmp_*.png
+
+# Runtime and evaluation artifacts
 results/history.json
 results/metrics.json
+results/*.png
+results/*.npz
+results/prediction_history.csv
+
+# Local scratch scripts
+user_face_eval.py
+
+# IDE artifacts
+.kombai/
+
+# Local backups
+*.bak
+
+# Private datasets
+data/UTKFace/
