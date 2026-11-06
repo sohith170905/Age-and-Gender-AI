@@ -18,4 +18,4 @@ gatherUsageStats = false
 
 [client]
 toolbarMode = "minimal"
-showErrorDetails = "none"
+showErrorDetails = "stacktrace"
